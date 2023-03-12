@@ -21,23 +21,25 @@ public class UserServices {
 
     public User updateUser(User update) {
         update.setModified_datetime(new Date());
-        userRepo.save(update);
-
-        return update;
+  
+        return userRepo.save(update);
     }
 
     public User addUser(User add) {
         if (Pattern.compile("^(.+)@(\\S+)$").matcher(add.getEmail()).matches() && add.getHash_key() == null) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Invalid Request");
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Invalid request");
+        }
+        User duplicateuser = userRepo.findUserByEmail(add.getEmail());
+        if(duplicateuser != null) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Email registered.");
         }
 
         add.setModified_datetime(new Date());
         add.setId(0);
         add.setAccess_token(null);
         add.setRefresh_token(null);
-        userRepo.save(add);
 
-        return add;
+        return userRepo.save(add);
     }
 
     public User deleteUser(int userid) {

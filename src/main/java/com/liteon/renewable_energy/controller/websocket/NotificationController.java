@@ -65,9 +65,9 @@ public class NotificationController {
         hist.setDatetime(history.getDatetime());
         hist.setEvent_tagname(event.getTagname());
         hist.setValue(history.getValue());
-        historyRepo.save(hist);
+        History saved = historyRepo.save(hist);
 
-        template.convertAndSend("/public/trend", history);
+        template.convertAndSend("/public/trend", saved);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

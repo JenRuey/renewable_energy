@@ -62,10 +62,7 @@ public class TokenServices {
             user.setAccess_token(access_token);
             user.setRefresh_token(refresh_token);
             user.setModified_datetime(new Date());
-
-            userRepo.save(user);
-
-            return user;
+            return userRepo.save(user);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
@@ -112,9 +109,10 @@ public class TokenServices {
                         utils.hashSecurePassword(utils.generateSecurePassword(), utils.getSalt()),
                         new Date());
                 user.setId(0);
-                userRepo.save(user);
+                return obtainToken(userRepo.save(user));
+            } else {
+                return obtainToken(user);
             }
-            return obtainToken(user);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
@@ -159,9 +157,10 @@ public class TokenServices {
                                     "Abcd123$"
                                     , utils.getSalt()),
                             new Date());
-                    userRepo.save(user);
+                    return obtainToken(userRepo.save(user));
+                } else {
+                    return obtainToken(user);
                 }
-                return obtainToken(user);
             } else {
                 throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Invalid ID token.");
             }
@@ -175,12 +174,9 @@ public class TokenServices {
     }
 
     public User refreshToken(String token) {
-        User user = userRepo.findUserByRefreshToken(token);
-        if(user == null || !user.getRefresh_token().equals(token))
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Invalid refresh token.");
-
+        User user = userRepo.findUserByEmail(jwtTokenUtil.getUsernameFromToken(token));
         boolean validtoken = jwtTokenUtil.validateToken(token, user.getEmail());
-        if(!validtoken)
+        if (user == null || !validtoken)
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Invalid refresh token.");
 
         String access_token = jwtTokenUtil.generateToken(user.getEmail());
@@ -190,8 +186,6 @@ public class TokenServices {
         user.setRefresh_token(refresh_token);
         user.setModified_datetime(new Date());
 
-        userRepo.save(user);
-
-        return user;
+        return userRepo.save(user);
     }
 }
